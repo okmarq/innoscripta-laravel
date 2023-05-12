@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Preference;
 use App\Http\Requests\StorePreferenceRequest;
 use App\Http\Requests\UpdatePreferenceRequest;
+use App\Http\Resources\PreferenceResource;
 
 class PreferenceController extends Controller
 {
@@ -13,15 +14,7 @@ class PreferenceController extends Controller
      */
     public function index()
     {
-        //
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
+        return PreferenceResource::collection(Preference::all());
     }
 
     /**
@@ -29,7 +22,8 @@ class PreferenceController extends Controller
      */
     public function store(StorePreferenceRequest $request)
     {
-        //
+        $preference = Preference::create($request->all());
+        return new PreferenceResource($preference);
     }
 
     /**
@@ -37,15 +31,7 @@ class PreferenceController extends Controller
      */
     public function show(Preference $preference)
     {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Preference $preference)
-    {
-        //
+        return new PreferenceResource($preference);
     }
 
     /**
@@ -53,7 +39,8 @@ class PreferenceController extends Controller
      */
     public function update(UpdatePreferenceRequest $request, Preference $preference)
     {
-        //
+        $preference->update($request->all());
+        return new PreferenceResource($preference);
     }
 
     /**
@@ -61,6 +48,7 @@ class PreferenceController extends Controller
      */
     public function destroy(Preference $preference)
     {
-        //
+        $preference->delete();
+        return response(null, 204);
     }
 }
