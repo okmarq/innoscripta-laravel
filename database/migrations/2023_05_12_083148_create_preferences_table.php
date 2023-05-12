@@ -13,11 +13,7 @@ return new class extends Migration
     {
         Schema::create('preferences', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->onUpdate('cascade')->onDelete('cascade');
-            $table->string('source');
-            $table->string('category');
-            $table->string('author');
-            $table->timestamps();
+            $table->string('name')->unique();
         });
     }
 

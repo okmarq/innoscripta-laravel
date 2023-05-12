@@ -25,5 +25,11 @@ class Keyword extends Model
     */
    public $timestamps = false;
 
-
+    /**
+     * The articles that belong to the keyword.
+     */
+    public function articles()
+    {
+        return $this->belongsToMany(Article::class);
+    }
 }

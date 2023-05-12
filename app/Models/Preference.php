@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Preference extends Model
 {
@@ -15,32 +16,21 @@ class Preference extends Model
      * @var array<int, string>
      */
     protected $fillable = [
-        'source',
-        'category',
-        'author',
+        'name'
     ];
 
     /**
-     * The attributes that should be hidden for serialization.
+     * Indicates if the model should be timestamped.
      *
-     * @var array<int, string>
+     * @var bool
      */
-    protected $hidden = [];
+    public $timestamps = false;
 
     /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
+     * Get the users for the preference.
      */
-    protected $casts = [];
-
-    public function preferences()
+    public function users(): HasMany
     {
-        return $this->hasMany(Preference::class);
-    }
-
-    public function articles()
-    {
-        return $this->hasMany(Article::class);
+        return $this->hasMany(User::class);
     }
 }
