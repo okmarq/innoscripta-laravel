@@ -5,49 +5,51 @@ namespace App\Http\Controllers;
 use App\Models\Article;
 use App\Http\Requests\StoreArticleRequest;
 use App\Http\Requests\UpdateArticleRequest;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Http\Request;
 use App\Http\Resources\ArticleResource;
+use App\Services\NewsApiService;
+use App\Services\NewYorkTimesService;
+use App\Services\TheGuardianService;
 
 class ArticleController extends Controller
 {
+
+    protected $newsApiService;
+    protected $theGuardianService;
+    protected $newYorkTimesService;
+
+    public function __construct(NewsApiService $newsApiService, TheGuardianService $theGuardianService, NewYorkTimesService $newYorkTimesService)
+    {
+        $this->newsApiService = $newsApiService;
+        $this->theGuardianService = $theGuardianService;
+        $this->newYorkTimesService = $newYorkTimesService;
+    }
+
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
-    {
-        $collection = (is_null($request->input('keyword'))) ? ArticleResource::collection(Article::all()) : ArticleResource::collection(Article::all()->keywords()->where('keyword', $request->input('keyword'))->get());
-
-        // $keyword = $request->input('keyword');
-        // $author = $request->input('author');
-        // $date = $request->input('date');
-        // $category = $request->input('category');
-        // $source = $request->input('source');
-
-        // $article_keyword = ArticleResource::collection(Article::where('keyword', $keyword)->get());
-        // $article_author = ArticleResource::collection(Article::where('author', $author)->get());
-        // $article_date = ArticleResource::collection(Article::where('date', $date)->get());
-        // $article_category = ArticleResource::collection(Article::where('category', $category)->get());
-        // $article_source = ArticleResource::collection(Article::where('source', $source)->get());
-        // $article = ArticleResource::collection(Article::all());
-
-        return $collection;
-    }
-
     public function search(Request $request)
     {
-        switch ($request) {
-            case 'value':
-                # code...
-                break;
+        $keyword = $request->input('keyword');
+        $date = $request->input('date');
+        $category = $request->input('category');
+        $source = $request->input('source');
 
-            case 'value':
-                # code...
-                break;
+        // Fetch articles from all the news sources
+        $newsApiArticles = $this->newsApiService->getArticles($keyword, $date, $category, $source);
+        $guardianArticles = $this->theGuardianService->getArticles($keyword, $date, $category, $source);
+        $nyTimesArticles = $this->newYorkTimesService->getArticles($keyword, $date, $category, $source);
 
-            default:
-                # code...
-                break;
-        }
+        // Merge the articles from all the sources
+        $articles = array_merge($newsApiArticles, $guardianArticles, $nyTimesArticles);
+
+        return response()->json($articles);
+    }
+
+    public function index()
+    {
+        return ArticleResource::collection(Article::all());
     }
 
     /**
@@ -63,39 +65,6 @@ class ArticleController extends Controller
      * Display the specified resource.
      */
     public function show(Article $article)
-    {
-        return new ArticleResource($article);
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function showByKeyword(string $keyword)
-    {
-        $article = Article::where('keyword', $keyword);
-        return new ArticleResource($article);
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function showByDate(Article $article)
-    {
-        return new ArticleResource($article);
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function showByCategory(Article $article)
-    {
-        return new ArticleResource($article);
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function showByAuthor(Article $article)
     {
         return new ArticleResource($article);
     }

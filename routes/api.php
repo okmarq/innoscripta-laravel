@@ -43,11 +43,5 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     // Articles
     Route::apiResource('/articles', ArticleController::class);
 
-    Route::get('/articles/{keyword}', [ArticleController::class, 'showByKeyword'])->name('search_keyword');
-
-    Route::get('/articles/{date}', [ArticleController::class, 'showByDate'])->name('filter_date');
-
-    Route::get('/articles/{category}', [ArticleController::class, 'showByCategory'])->name('filter_category');
-
-    Route::get('/articles/{author}', [ArticleController::class, 'showByAuthor'])->name('filter_author');
+    Route::post('/search', [ArticleController::class, 'search']);
 });
