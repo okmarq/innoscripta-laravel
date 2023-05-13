@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StorePreferenceRequest;
 use App\Http\Resources\ArticleResource;
 use App\Http\Resources\UserResource;
+use App\Models\Preference;
 use App\Models\User;
 use Illuminate\Http\Request;
 
@@ -34,31 +36,15 @@ class UserController extends Controller
         return new UserResource($user);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function saveSourcePreference(string $source)
+    public function savePreference(StorePreferenceRequest $request)
     {
-        // return new ArticleResource($source);
-        // 'source',
-    }
+        $preference = new Preference($request->all());
 
-    /**
-     * Display the specified resource.
-     */
-    public function saveCategoryPreference(string $category)
-    {
-        // return new ArticleResource($category);
-        // 'category',
-    }
+        $user = auth()->user();
 
-    /**
-     * Display the specified resource.
-     */
-    public function saveAuthorPreference(string $author)
-    {
-        // return new ArticleResource($author);
-        // 'author',
+        $user->preferences()->save($preference);
+
+        return new UserResource($user);
     }
 
     /**

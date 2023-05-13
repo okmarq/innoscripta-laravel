@@ -14,6 +14,12 @@ class PreferenceResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        return parent::toArray($request);
+        return [
+            'id' => (string) $this->id,
+            'source' => $this->source,
+            'category' => $this->category,
+            'author' => $this->author,
+            'user' => $this->user,
+        ];
     }
 }

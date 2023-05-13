@@ -13,7 +13,13 @@ return new class extends Migration
     {
         Schema::create('preferences', function (Blueprint $table) {
             $table->id();
-            $table->string('name')->unique();
+            $table->string('source')->nullable();
+            $table->string('category')->nullable();
+            $table->string('author')->nullable();
+            $table->foreignId('user_id')
+                ->constrained()
+                ->cascadeOnUpdate()
+                ->cascadeOnDelete();
         });
     }
 

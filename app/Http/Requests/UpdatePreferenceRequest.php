@@ -22,9 +22,9 @@ class UpdatePreferenceRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'source' => '',
-            'category' => '',
-            'author' => '',
+            'source' => 'string|nullable|max:255',
+            'category' => 'string|nullable|max:255',
+            'author' => 'string|nullable|max:255',
         ];
     }
 }

@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Preference extends Model
 {
@@ -16,7 +16,10 @@ class Preference extends Model
      * @var array<int, string>
      */
     protected $fillable = [
-        'name'
+        'source',
+        'category',
+        'author',
+        'user_id',
     ];
 
     /**
@@ -27,10 +30,10 @@ class Preference extends Model
     public $timestamps = false;
 
     /**
-     * Get the users for the preference.
+     * Get the user that owns the preference.
      */
-    public function users(): HasMany
+    public function user(): BelongsTo
     {
-        return $this->hasMany(User::class);
+        return $this->belongsTo(User::class);
     }
 }

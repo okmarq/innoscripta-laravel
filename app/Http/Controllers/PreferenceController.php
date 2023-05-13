@@ -22,8 +22,18 @@ class PreferenceController extends Controller
      */
     public function store(StorePreferenceRequest $request)
     {
-        $preference = Preference::create($request->all());
+        $preference = new Preference($request->all());
+        $user = User::find(auth()->user()->id)-preference()>save($preference);
+
         return new PreferenceResource($preference);
+    }
+
+    public function savePreference(StorePreferenceUserRequest $request)
+    {
+
+        $user->preferences()->attach($request->preference_id, ['name'=> $request->name]);
+
+        return new UserResource($user);
     }
 
     /**

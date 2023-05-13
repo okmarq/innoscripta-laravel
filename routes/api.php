@@ -4,7 +4,6 @@ use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PreferenceController;
 use App\Http\Controllers\UserController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -29,19 +28,15 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     // Users
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-    Route::apiResource('/users', UserController::class);
+    // Route::apiResource('/users', UserController::class);
 
-    Route::get('/users/{source}', [UserController::class, 'showBySource'])->name('user_source');
-
-    Route::get('/users/{category}', [UserController::class, 'showByCategory'])->name('user_category');
-
-    Route::get('/users/{author}', [UserController::class, 'showByAuthor'])->name('user_author');
+    Route::post('/preference/save', [UserController::class, 'savePreference']);
 
     // Preferences
-    Route::apiResource('/preferences', PreferenceController::class);
+    // Route::apiResource('/preferences', PreferenceController::class);
 
     // Articles
-    Route::apiResource('/articles', ArticleController::class);
+    // Route::apiResource('/articles', ArticleController::class);
 
     Route::post('/search', [ArticleController::class, 'search']);
 });

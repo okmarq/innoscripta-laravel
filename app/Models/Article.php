@@ -16,16 +16,14 @@ class Article extends Model
      */
     protected $fillable = [
         'title',
-        'category',
-        'source',
-        'author',
-        'url',
-        'keywords',
-        'url_to_image',
         'content',
         'description',
-        'date',
-        'published_at'
+        'url',
+        'url_to_image',
+        'published_at',
+        'source',
+        'author',
+        'category',
     ];
 
     /**
@@ -36,11 +34,11 @@ class Article extends Model
     protected $casts = [];
 
     /**
-    * Indicates if the model should be timestamped.
-    *
-    * @var bool
-    */
-   public $timestamps = false;
+     * Indicates if the model should be timestamped.
+     *
+     * @var bool
+     */
+    public $timestamps = false;
 
     /**
      * The keywords that belong to the article.
