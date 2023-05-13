@@ -5,9 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\Article;
 use App\Http\Requests\StoreArticleRequest;
 use App\Http\Requests\UpdateArticleRequest;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Http\Request;
 use App\Http\Resources\ArticleResource;
+use App\Models\Preference;
 use App\Services\NewsApiService;
 use App\Services\NewYorkTimesService;
 use App\Services\TheGuardianService;
@@ -18,6 +20,7 @@ class ArticleController extends Controller
     protected $newsApiService;
     protected $theGuardianService;
     protected $newYorkTimesService;
+    protected $cacheTime = 3600; // Cache articles for 1 hour
 
     public function __construct(NewsApiService $newsApiService, TheGuardianService $theGuardianService, NewYorkTimesService $newYorkTimesService)
     {
@@ -26,9 +29,24 @@ class ArticleController extends Controller
         $this->newYorkTimesService = $newYorkTimesService;
     }
 
-    /**
-     * Display a listing of the resource.
-     */
+    public function getArticles(string $keyword)
+    {
+        $cacheKey = 'articles_' . $keyword;
+
+        return Cache::remember($cacheKey, $this->cacheTime, function () use ($keyword) {
+            // Fetch articles from all the news sources
+            $newsApiArticles = $this->newsApiService->getArticles($keyword);
+            $guardianArticles = $this->theGuardianService->getArticles($keyword);
+            $nyTimesArticles = $this->newYorkTimesService->getArticles($keyword);
+
+            // Merge the articles from all the sources
+            $articles = array_merge($newsApiArticles, $guardianArticles, $nyTimesArticles);
+
+            // Save articles to database
+            Article::insert($articles);
+        });
+    }
+
     public function search(Request $request)
     {
         $keyword = $request->input('keyword');
@@ -36,30 +54,53 @@ class ArticleController extends Controller
         $category = $request->input('category');
         $source = $request->input('source');
 
-        // Fetch articles from all the news sources
-        $newsApiArticles = $this->newsApiService->getArticles($keyword);
-        $guardianArticles = $this->theGuardianService->getArticles($keyword);
-        $nyTimesArticles = $this->newYorkTimesService->getArticles($keyword);
+        $this->getArticles($keyword);
 
-        // Merge the articles from all the sources
-        $articles = array_merge($newsApiArticles, $guardianArticles, $nyTimesArticles);
-
-        Article::insert($articles);
-    }
-
-    public function getArticles()
-    {
-        // acquire articles from all sources
-        // clean data
-        // save to database
-        // save keyword to database and attach article to it
-        // allow users to search for article by keyword
-        // allow users to filter articles by author, category and source
+        if (!is_null($date) || !is_null($category) || !is_null($source)) {
+            $cacheKey = 'search_' . $date . '_' . $category . '_' . $source . '_' . $keyword;
+            return Cache::remember($cacheKey, $this->cacheTime, function () use ($keyword, $date, $category, $source) {
+                return ArticleResource::collection(
+                    Article::where('title', 'LIKE', "%{$keyword}%")
+                        ->orWhere('description', 'LIKE', "%{$keyword}%")
+                        ->where('published_at', '>=', Carbon::parse($date)->format('Y-m-d H:i:s'))
+                        ->where('category', 'LIKE', "%{$category}%")
+                        ->where('source', 'LIKE', "%{$source}%")
+                        ->get()
+                );
+            });
+        } else {
+            $cacheKey = 'search_' . $keyword;
+            return Cache::remember($cacheKey, $this->cacheTime, function () use ($keyword) {
+                return ArticleResource::collection(
+                    Article::where('title', 'LIKE', "%{$keyword}%")
+                        ->orWwhere('description', 'LIKE', "%{$keyword}%")
+                        ->get()
+                );
+            });
+        }
     }
 
     public function index()
     {
-        return ArticleResource::collection(Article::all());
+        $user = auth()->user();
+
+        // get user preference
+        $preference = Preference::where('user_id', $user->id)->orderBy('id', 'desc')->first();
+
+        $source = $preference->source ?? null;
+        $category = $preference->category ?? null;
+        $author = $preference->author ?? null;
+
+        // get articles based on user preferences
+        $cacheKey = 'preferred_' . $author . '_' . $category . '_' . $source;
+        return Cache::remember($cacheKey, $this->cacheTime, function () use ($category, $source, $author) {
+            return ArticleResource::collection(
+                Article::where('category', 'LIKE', "%{$category}%")
+                    ->orWhere('source', 'LIKE', "%{$source}%")
+                    ->orWhere('author', 'LIKE', "%{$author}%")
+                    ->get()
+            );
+        });
     }
 
     /**

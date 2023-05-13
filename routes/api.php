@@ -36,7 +36,9 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     // Route::apiResource('/preferences', PreferenceController::class);
 
     // Articles
-    // Route::apiResource('/articles', ArticleController::class);
+    Route::apiResource('/articles', ArticleController::class);
 
-    Route::post('/search', [ArticleController::class, 'search']);
+    Route::post('/article/search', [ArticleController::class, 'search']);
+
+    Route::post('/article/get', [ArticleController::class, 'getArticles']);
 });
