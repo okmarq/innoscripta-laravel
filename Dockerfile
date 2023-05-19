@@ -20,6 +20,7 @@ WORKDIR /var/www/html
 COPY innoscripta-laravel/composer.json innoscripta-laravel/composer.lock ./
 
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
 RUN composer install --no-scripts --no-autoloader
 
 COPY ./entrypoint.sh /entrypoint.sh
@@ -37,8 +38,8 @@ RUN chown -R www-data:www-data \
 
 RUN chmod +x /entrypoint.sh
 
-# Expose port 80
-EXPOSE 80
+# Expose port 8000
+EXPOSE 8000
 
 # Start Apache
 CMD ["apache2-foreground"]
