@@ -33,11 +33,29 @@ class ArticleController extends Controller
     {
         $cacheKey = 'articles_' . $keyword;
 
-        return Cache::remember($cacheKey, $this->cacheTime, function () use ($keyword) {
+        return Cache::remember($cacheKey, $this->cacheTime * 12, function () use ($keyword) {
             // Fetch articles from all the news sources
-            $newsApiArticles = $this->newsApiService->getArticles($keyword);
-            $guardianArticles = $this->theGuardianService->getArticles($keyword);
-            $nyTimesArticles = $this->newYorkTimesService->getArticles($keyword);
+
+            try {
+                $newsApiArticles = $this->newsApiService->getArticles($keyword);
+            } catch (\Throwable $th) {
+                // I would log this to catch errors from the api
+                // to enable me analyze and fix it without preventing the actual functionality.
+            }
+
+            try {
+                $guardianArticles = $this->theGuardianService->getArticles($keyword);
+            } catch (\Throwable $th) {
+                // I would log this to catch errors from the api
+                // to enable me analyze and fix it without preventing the actual functionality.
+            }
+
+            try {
+                $nyTimesArticles = $this->newYorkTimesService->getArticles($keyword);
+            } catch (\Throwable $th) {
+                // I would log this to catch errors from the api
+                // to enable me analyze and fix it without preventing the actual functionality.
+            }
 
             // Merge the articles from all the sources
             $articles = array_merge($newsApiArticles, $guardianArticles, $nyTimesArticles);
@@ -54,7 +72,12 @@ class ArticleController extends Controller
         $category = $request->input('category');
         $source = $request->input('source');
 
-        $this->getArticles($keyword);
+        try {
+            $this->getArticles($keyword);
+        } catch (\Throwable $th) {
+            // I would log this to catch errors from the api
+            // to enable me analyze and fix it without preventing the actual functionality.
+        }
 
         if (!is_null($date) || !is_null($category) || !is_null($source)) {
             $cacheKey = 'search_' . $date . '_' . $category . '_' . $source . '_' . $keyword;
@@ -65,7 +88,7 @@ class ArticleController extends Controller
                         ->where('published_at', '>=', Carbon::parse($date)->format('Y-m-d H:i:s'))
                         ->where('category', 'LIKE', "%{$category}%")
                         ->where('source', 'LIKE', "%{$source}%")
-                        ->get()
+                        ->paginate(12)
                 );
             });
         } else {
@@ -73,8 +96,8 @@ class ArticleController extends Controller
             return Cache::remember($cacheKey, $this->cacheTime, function () use ($keyword) {
                 return ArticleResource::collection(
                     Article::where('title', 'LIKE', "%{$keyword}%")
-                        ->orWwhere('description', 'LIKE', "%{$keyword}%")
-                        ->get()
+                        ->orWhere('description', 'LIKE', "%{$keyword}%")
+                        ->paginate(12)
                 );
             });
         }
@@ -91,6 +114,7 @@ class ArticleController extends Controller
         $category = $preference->category ?? null;
         $author = $preference->author ?? null;
 
+        // Cache::flush();
         // get articles based on user preferences
         $cacheKey = 'preferred_' . $author . '_' . $category . '_' . $source;
         return Cache::remember($cacheKey, $this->cacheTime, function () use ($category, $source, $author) {
@@ -98,7 +122,7 @@ class ArticleController extends Controller
                 Article::where('category', 'LIKE', "%{$category}%")
                     ->orWhere('source', 'LIKE', "%{$source}%")
                     ->orWhere('author', 'LIKE', "%{$author}%")
-                    ->get()
+                    ->paginate(12)
             );
         });
     }
